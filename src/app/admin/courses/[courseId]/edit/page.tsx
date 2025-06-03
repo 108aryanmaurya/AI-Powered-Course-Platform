@@ -1,4 +1,4 @@
-import Pageheader from "@/components/Pageheader";
+import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DialogTrigger } from "@/components/ui/dialog";
@@ -7,13 +7,15 @@ import { db } from "@/drizzle/db";
 import { CourseSectionTable, CourseTable, LessonTable } from "@/drizzle/schema";
 import { CourseForm } from "@/features/courses/components/CourseForm";
 import { getCourseIdTag } from "@/features/courses/db/cache/courses";
-import { SectionFormDialog } from "@/features/courseSection/components/SectionFormDialog";
-import { SortableSectionList } from "@/features/courseSection/components/SortableSectionList";
-import { getCourseSectionCourseTag } from "@/features/courseSection/db/cache/courseSection";
+import { SectionFormDialog } from "@/features/courseSections/components/SectionFormDialog";
+import { SortableSectionList } from "@/features/courseSections/components/SortableSectionList";
+import { getCourseSectionCourseTag } from "@/features/courseSections/db/cache";
+import { LessonFormDialog } from "@/features/lessons/components/LessonFormDialog";
+import { SortableLessonList } from "@/features/lessons/components/SortableLessonList";
 import { getLessonCourseTag } from "@/features/lessons/db/cache/lessons";
 import { cn } from "@/lib/utils";
 import { asc, eq } from "drizzle-orm";
-import { EyeClosed, EyeClosedIcon, PlusIcon } from "lucide-react";
+import { EyeClosedIcon, PlusIcon } from "lucide-react";
 import { cacheTag } from "next/dist/server/use-cache/cache-tag";
 import { notFound } from "next/navigation";
 
@@ -27,13 +29,13 @@ export default async function EditCoursePage({
   if (course == null) return notFound();
   return (
     <div className="container my-6">
-      <Pageheader title={course.name}></Pageheader>
+      <PageHeader title={course.name}></PageHeader>
       <Tabs defaultValue="lessons">
         <TabsList>
           <TabsTrigger value="lessons">Lesson</TabsTrigger>
           <TabsTrigger value="details">Details</TabsTrigger>
         </TabsList>
-        <TabsContent value="lessons">
+        <TabsContent value="lessons" className="flex flex-col gap-2">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between ">
               <CardTitle>Sections</CardTitle>
@@ -53,7 +55,7 @@ export default async function EditCoursePage({
             </CardContent>
           </Card>
         </TabsContent>
-        <hr className="my-4" />
+        <hr className="my-2" />
         {course.courseSections.map((section) => (
           <Card key={section.id}>
             <CardHeader className="flex flex-row items-center justify-between gap-4">
@@ -72,7 +74,7 @@ export default async function EditCoursePage({
               >
                 <DialogTrigger asChild>
                   <Button variant={"outline"}>
-                    <PlusIcon></PlusIcon>New Section
+                    <PlusIcon></PlusIcon>New Lesson
                   </Button>
                 </DialogTrigger>
               </LessonFormDialog>

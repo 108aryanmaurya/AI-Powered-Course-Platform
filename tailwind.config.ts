@@ -1,4 +1,5 @@
 import type { Config } from "tailwindcss";
+import typography from "@tailwindcss/typography";
 
 export default {
   content: [
@@ -7,7 +8,11 @@ export default {
     "./app/**/*.{ts,tsx}",
   ],
   theme: {
-    extend: {},
+    extend: {
+      colors: {
+        border: "#d1d5db",
+      },
+    },
   },
-  plugins: [],
+  plugins: [typography],
 } satisfies Config;

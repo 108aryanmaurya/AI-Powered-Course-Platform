@@ -1,17 +1,17 @@
-import { db } from "@/drizzle/db";
-import { CourseTable } from "@/drizzle/schema";
-import { revalidateCourseCache } from "./cache/courses";
-import { eq } from "drizzle-orm";
+import { db } from "@/drizzle/db"
+import { CourseTable } from "@/drizzle/schema"
+import { revalidateCourseCache } from "./cache/courses"
+import { eq } from "drizzle-orm"
 
 export async function insertCourse(data: typeof CourseTable.$inferInsert) {
-  const [newCourse] = await db.insert(CourseTable).values(data).returning();
-  if (newCourse == null) throw new Error("Failed to Create Course");
-  revalidateCourseCache(newCourse.id);
+  const [newCourse] = await db.insert(CourseTable).values(data).returning()
+  if (newCourse == null) throw new Error("Failed to create course")
+  revalidateCourseCache(newCourse.id)
 
-  return newCourse;
+  return newCourse
 }
 
-export async function updateCourseDB(
+export async function updateCourse(
   id: string,
   data: typeof CourseTable.$inferInsert
 ) {
@@ -19,21 +19,20 @@ export async function updateCourseDB(
     .update(CourseTable)
     .set(data)
     .where(eq(CourseTable.id, id))
-    .returning();
-  if (updatedCourse == null) throw new Error("Failed to Update Course");
-  revalidateCourseCache(updatedCourse.id);
+    .returning()
+  if (updatedCourse == null) throw new Error("Failed to update course")
+  revalidateCourseCache(updatedCourse.id)
 
-  return updatedCourse;
+  return updatedCourse
 }
 
-export async function removeCourse(id: string) {
+export async function deleteCourse(id: string) {
   const [deletedCourse] = await db
     .delete(CourseTable)
     .where(eq(CourseTable.id, id))
-    .returning();
-  console.log(deletedCourse);
-  if (deletedCourse == null) throw new Error("Failed to Delete Course");
-  revalidateCourseCache(deletedCourse.id);
+    .returning()
+  if (deletedCourse == null) throw new Error("Failed to delete course")
+  revalidateCourseCache(deletedCourse.id)
 
-  return deletedCourse;
+  return deletedCourse
 }

@@ -1,3 +1,4 @@
+import SocketClient from "@/components/layout/SocketClient";
 import { Button } from "@/components/ui/button";
 import { canAccessAdminPage } from "@/permissions/general";
 import { getCurrentUser } from "@/services/clerk";
@@ -19,6 +20,9 @@ export default function ConsumerLayout({
 function Navbar() {
   return (
     <header className="flex h-12 shadow bg-background z-10 ">
+      {/* <Suspense fallback={<></>}>
+        <SocketClient></SocketClient>
+      </Suspense> */}
       <nav className="flex gap-4  container">
         <Link
           href={"/"}
@@ -46,8 +50,8 @@ function Navbar() {
               appearance={{
                 elements: {
                   userButtonAvatarBox: {
-                    width: "100%",
-                    height: "100%",
+                    width: "60%",
+                    height: "80%",
                   },
                 },
               }}

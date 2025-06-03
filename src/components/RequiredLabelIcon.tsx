@@ -1,6 +1,6 @@
-import { cn } from "@/lib/utils";
-import { AsteriskIcon } from "lucide-react";
-import { ComponentPropsWithoutRef } from "react";
+import { cn } from "@/lib/utils"
+import { AsteriskIcon } from "lucide-react"
+import { ComponentPropsWithoutRef } from "react"
 
 export function RequiredLabelIcon({
   className,
@@ -11,5 +11,5 @@ export function RequiredLabelIcon({
       {...props}
       className={cn("text-destructive inline size-4 align-top", className)}
     />
-  );
+  )
 }

@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import Pageheader from "@/components/Pageheader";
+import { PageHeader } from "@/components/PageHeader";
 import Link from "next/link";
 import React from "react";
 import { CourseTable } from "@/features/courses/components/CourseTable";
@@ -14,17 +14,17 @@ import {
 } from "@/drizzle/schema";
 import { asc, countDistinct, eq } from "drizzle-orm";
 import { getUserCourseAccessGlobalTag } from "@/features/courses/db/cache/userCourseAccess";
-import { getCourseSectionGlobalTag } from "@/features/courseSection/db/cache/courseSection";
+import { getCourseSectionGlobalTag } from "@/features/courseSections/db/cache";
 import { getLessonGlobalTag } from "@/features/lessons/db/cache/lessons";
 const CoursesPage = async () => {
   const courses = await getCourses();
   return (
     <div className="container my-6">
-      <Pageheader title="Courses">
+      <PageHeader title="Courses">
         <Button asChild>
           <Link href={"/admin/courses/new"}>New Course</Link>
         </Button>
-      </Pageheader>
+      </PageHeader>
       <CourseTable courses={courses}></CourseTable>
     </div>
   );

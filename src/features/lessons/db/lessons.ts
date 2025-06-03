@@ -1,85 +1,155 @@
 import { db } from "@/drizzle/db";
 import { CourseSectionTable, LessonTable } from "@/drizzle/schema";
-import { eq, desc } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { revalidateLessonCache } from "./cache/lessons";
 
-export async function getNextLessonOrder(sectionId: string) {
+export async function getNextCourseLessonOrder(sectionId: string) {
   const lesson = await db.query.LessonTable.findFirst({
     columns: { order: true },
-    where: eq(LessonTable.sectionId, sectionId),
-    orderBy: desc(LessonTable.order),
+    where: ({ sectionId: sectionIdCol }, { eq }) => eq(sectionIdCol, sectionId),
+    orderBy: ({ order }, { desc }) => desc(order),
   });
 
   return lesson ? lesson.order + 1 : 0;
 }
 
 export async function insertLesson(data: typeof LessonTable.$inferInsert) {
-  const [newLesson, courseId] = await db.transaction(async (trx) => {
+  const [newLesson, section] = await db.transaction(async (trx) => {
     const [[newLesson], section] = await Promise.all([
-      db.insert(LessonTable).values(data).returning(),
+      trx.insert(LessonTable).values(data).returning(),
       trx.query.CourseSectionTable.findFirst({
-        columns: { courseId: true },
+        columns: { courseId: true, id: true, name: true },
+        with: {
+          course: {
+            columns: {
+              name: true,
+            },
+          },
+        },
         where: eq(CourseSectionTable.id, data.sectionId),
       }),
     ]);
 
     if (section == null) return trx.rollback();
-    return [newLesson, section.courseId];
+
+    return [newLesson, section];
   });
+  if (newLesson == null) throw new Error("Failed to create lesson");
 
-  if (newLesson == null) throw new Error("Failed to Create Lesson");
-  revalidateLessonCache({ courseId: courseId, id: newLesson.id });
+  revalidateLessonCache({ courseId: section.courseId, id: newLesson.id });
 
-  return newLesson;
+  return {
+    ...newLesson,
+    courseName: section.course.name,
+    courseId: section.courseId,
+    sectionName: section.name,
+    sectionId: section.id,
+  };
 }
 
-export async function updateLessonDB(
+export async function updateLesson(
   id: string,
   data: Partial<typeof LessonTable.$inferInsert>
 ) {
-  const [updatedSection] = await db
-    .update(LessonTable)
-    .set(data)
-    .where(eq(LessonTable.id, id))
-    .returning();
-  if (updatedSection == null) throw new Error("Failed to Update Section");
-  revalidateLessonCache({
-    sectionId: updatedSection.sectionId,
-    id: updatedSection.id,
+  const [updatedLesson, courseId] = await db.transaction(async (trx) => {
+    const currentLesson = await trx.query.LessonTable.findFirst({
+      where: eq(LessonTable.id, id),
+      columns: { sectionId: true },
+    });
+
+    if (
+      data.sectionId != null &&
+      currentLesson?.sectionId !== data.sectionId &&
+      data.order == null
+    ) {
+      data.order = await getNextCourseLessonOrder(data.sectionId);
+    }
+
+    const [updatedLesson] = await trx
+      .update(LessonTable)
+      .set(data)
+      .where(eq(LessonTable.id, id))
+      .returning();
+    if (updatedLesson == null) {
+      trx.rollback();
+      throw new Error("Failed to update lesson");
+    }
+
+    const section = await trx.query.CourseSectionTable.findFirst({
+      columns: { courseId: true },
+      where: eq(CourseSectionTable.id, updatedLesson.sectionId),
+    });
+
+    if (section == null) return trx.rollback();
+
+    return [updatedLesson, section.courseId];
   });
 
-  return updatedSection;
+  revalidateLessonCache({ courseId, id: updatedLesson.id });
+
+  return updatedLesson;
 }
 
-export async function removeLesson(id: string) {
-  const [deletedSection] = await db
-    .delete(LessonTable)
-    .where(eq(LessonTable.id, id))
-    .returning();
-  if (deletedSection == null) throw new Error("Failed to Delete Course");
-  revalidateLessonCache({
-    sectionId: deletedSection.sectionId,
-    id: deletedSection.id,
+export async function deleteLesson(id: string) {
+  const [deletedLesson, courseId] = await db.transaction(async (trx) => {
+    const [deletedLesson] = await trx
+      .delete(LessonTable)
+      .where(eq(LessonTable.id, id))
+      .returning();
+    if (deletedLesson == null) {
+      trx.rollback();
+      throw new Error("Failed to delete lesson");
+    }
+
+    const section = await trx.query.CourseSectionTable.findFirst({
+      columns: { courseId: true },
+      where: ({ id }, { eq }) => eq(id, deletedLesson.sectionId),
+    });
+
+    if (section == null) return trx.rollback();
+
+    return [deletedLesson, section.courseId];
   });
 
-  return deletedSection;
+  revalidateLessonCache({
+    id: deletedLesson.id,
+    courseId,
+  });
+
+  return deletedLesson;
 }
 
-export async function updateLessonOrdersDb(sectionIds: string[]) {
-  const sections = await Promise.all(
-    sectionIds.map((sectionId, index) =>
-      db
-        .update(LessonTable)
-        .set({ order: index })
-        .where(eq(LessonTable.id, sectionId))
-        .returning({
-          sectionId: LessonTable.sectionId,
-          id: LessonTable.id,
-        })
-    )
-  );
+export async function updateLessonOrders(lessonIds: string[]) {
+  const [lessons, courseId] = await db.transaction(async (trx) => {
+    const lessons = await Promise.all(
+      lessonIds.map((id, index) =>
+        db
+          .update(LessonTable)
+          .set({ order: index })
+          .where(eq(LessonTable.id, id))
+          .returning({
+            sectionId: LessonTable.sectionId,
+            id: LessonTable.id,
+          })
+      )
+    );
+    const sectionId = lessons[0]?.[0]?.sectionId;
+    if (sectionId == null) return trx.rollback();
 
-  sections.flat().forEach(({ id, sectionId }) => {
-    revalidateLessonCache({ sectionId, id });
+    const section = await trx.query.CourseSectionTable.findFirst({
+      columns: { courseId: true },
+      where: ({ id }, { eq }) => eq(id, sectionId),
+    });
+
+    if (section == null) return trx.rollback();
+
+    return [lessons, section.courseId];
+  });
+
+  lessons.flat().forEach(({ id }) => {
+    revalidateLessonCache({
+      courseId,
+      id,
+    });
   });
 }

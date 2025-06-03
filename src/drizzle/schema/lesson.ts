@@ -1,6 +1,5 @@
 import { integer, pgEnum, pgTable, text, uuid } from "drizzle-orm/pg-core";
 import { createdAt, id, updatedAt } from "../schemaHelpers";
-import { CourseTable } from "./course";
 import { relations } from "drizzle-orm";
 import { CourseSectionTable } from "./courseSection";
 import { UserLessonCompleteTable } from "./userLessonComplete";
@@ -18,7 +17,7 @@ export const LessonTable = pgTable("lessons", {
   order: integer().notNull(),
   sectionId: uuid()
     .notNull()
-    .references(() => CourseTable.id, { onDelete: "cascade" }),
+    .references(() => CourseSectionTable.id, { onDelete: "cascade" }),
   createdAt,
   updatedAt,
 });

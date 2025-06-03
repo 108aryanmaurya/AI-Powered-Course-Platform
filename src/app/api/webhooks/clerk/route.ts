@@ -1,9 +1,5 @@
 import { env } from "@/data/env/server";
-import {
-  deleteUser,
-  insertUser,
-  updateUser,
-} from "../../../../features/users/users";
+import { updateUser, deleteUser, insertUser } from "@/features/users/db/users";
 import { syncClerkUserMetadata } from "@/services/clerk";
 import { WebhookEvent } from "@clerk/nextjs/server";
 import { headers } from "next/headers";
@@ -56,9 +52,8 @@ export async function POST(req: Request) {
           email,
           name,
           imageUrl: event.data.image_url,
-          role: "user",
+          role: "admin",
         });
-
         await syncClerkUserMetadata(user);
       } else {
         await updateUser(

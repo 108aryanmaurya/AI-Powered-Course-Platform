@@ -1,9 +1,9 @@
-"use client";
-import React from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { courseSchema } from "@/features/courses/schemas/courses";
-import { z } from "zod";
+"use client"
+
+import { useForm } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { courseSchema } from "../schemas/courses"
+import { z } from "zod"
 import {
   Form,
   FormControl,
@@ -11,21 +11,22 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "../../../components/ui/form";
-import { RequiredLabelIcon } from "@/components/RequiredLabelIcon";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Button } from "@/components/ui/button";
-import { createCourse, updateCourse } from "../actions/course";
-import { toast } from "sonner";
+} from "@/components/ui/form"
+import { RequiredLabelIcon } from "@/components/RequiredLabelIcon"
+import { Input } from "@/components/ui/input"
+import { Textarea } from "@/components/ui/textarea"
+import { Button } from "@/components/ui/button"
+import { createCourse, updateCourse } from "../actions/courses"
+import { actionToast } from "@/hooks/use-toast"
+
 export function CourseForm({
   course,
 }: {
   course?: {
-    id: string;
-    name: string;
-    description: string;
-  };
+    id: string
+    name: string
+    description: string
+  }
 }) {
   const form = useForm<z.infer<typeof courseSchema>>({
     resolver: zodResolver(courseSchema),
@@ -33,19 +34,20 @@ export function CourseForm({
       name: "",
       description: "",
     },
-  });
+  })
 
   async function onSubmit(values: z.infer<typeof courseSchema>) {
     const action =
-      course == null ? createCourse : updateCourse.bind(null, course.id);
-    const data = await action(values);
-    toast.error(data.message, { richColors: true });
+      course == null ? createCourse : updateCourse.bind(null, course.id)
+    const data = await action(values)
+    actionToast({ actionData: data })
   }
+
   return (
     <Form {...form}>
       <form
         onSubmit={form.handleSubmit(onSubmit)}
-        className=" flex gap-6 flex-col"
+        className="flex gap-6 flex-col"
       >
         <FormField
           control={form.control}
@@ -53,36 +55,32 @@ export function CourseForm({
           render={({ field }) => (
             <FormItem>
               <FormLabel>
-                <RequiredLabelIcon></RequiredLabelIcon>
+                <RequiredLabelIcon />
                 Name
               </FormLabel>
               <FormControl>
-                <Input {...field}></Input>
+                <Input {...field} />
               </FormControl>
-              <FormMessage></FormMessage>
+              <FormMessage />
             </FormItem>
           )}
-        ></FormField>
+        />
         <FormField
           control={form.control}
           name="description"
           render={({ field }) => (
             <FormItem>
               <FormLabel>
-                <RequiredLabelIcon></RequiredLabelIcon>
+                <RequiredLabelIcon />
                 Description
               </FormLabel>
               <FormControl>
-                <Textarea
-                  {...field}
-                  className="min-h-20 resize-none"
-                ></Textarea>
+                <Textarea className="min-h-20 resize-none" {...field} />
               </FormControl>
-              <FormMessage></FormMessage>
+              <FormMessage />
             </FormItem>
           )}
-        ></FormField>
-
+        />
         <div className="self-end">
           <Button disabled={form.formState.isSubmitting} type="submit">
             Save
@@ -90,5 +88,5 @@ export function CourseForm({
         </div>
       </form>
     </Form>
-  );
+  )
 }

@@ -1,5 +1,5 @@
-import ActionButton from "@/components/ActionButton";
-import { Button } from "@/components/ui/button";
+import { ActionButton } from "@/components/ActionButton"
+import { Button } from "@/components/ui/button"
 import {
   Table,
   TableBody,
@@ -7,21 +7,22 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
-import { formatPlural } from "@/lib/formatter";
-import { Link, Trash2Icon } from "lucide-react";
-import { deleteCourse } from "../actions/course";
+} from "@/components/ui/table"
+import { formatPlural } from "@/lib/formatters"
+import { Trash2Icon } from "lucide-react"
+import Link from "next/link"
+import { deleteCourse } from "../actions/courses"
 
 export function CourseTable({
   courses,
 }: {
   courses: {
-    id: string;
-    name: string;
-    sectionsCount: number;
-    lessonsCount: number;
-    studentsCount: number;
-  }[];
+    id: string
+    name: string
+    sectionsCount: number
+    lessonsCount: number
+    studentsCount: number
+  }[]
 }) {
   return (
     <Table>
@@ -38,20 +39,20 @@ export function CourseTable({
         </TableRow>
       </TableHeader>
       <TableBody>
-        {courses.map((course) => (
+        {courses.map(course => (
           <TableRow key={course.id}>
             <TableCell>
-              <div className="flex flex-col gap-1 ">
+              <div className="flex flex-col gap-1">
                 <div className="font-semibold">{course.name}</div>
                 <div className="text-muted-foreground">
                   {formatPlural(course.sectionsCount, {
-                    plural: "section",
-                    singular: "sections",
+                    singular: "section",
+                    plural: "sections",
                   })}{" "}
                   •{" "}
                   {formatPlural(course.lessonsCount, {
-                    plural: "lesson",
-                    singular: "lessons",
+                    singular: "lesson",
+                    plural: "lessons",
                   })}
                 </div>
               </div>
@@ -63,12 +64,11 @@ export function CourseTable({
                   <Link href={`/admin/courses/${course.id}/edit`}>Edit</Link>
                 </Button>
                 <ActionButton
-                  requiredAreYouSure={true}
-                  variant={"destructiveOutline"}
+                  variant="destructiveOutline"
+                  requireAreYouSure
                   action={deleteCourse.bind(null, course.id)}
-                  // asChild
                 >
-                  <Trash2Icon></Trash2Icon>
+                  <Trash2Icon />
                   <span className="sr-only">Delete</span>
                 </ActionButton>
               </div>
@@ -77,5 +77,5 @@ export function CourseTable({
         ))}
       </TableBody>
     </Table>
-  );
+  )
 }

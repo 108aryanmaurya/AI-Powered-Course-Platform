@@ -1,3 +1,4 @@
+import SocketClient from "@/components/layout/SocketClient";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { canAccessAdminPage } from "@/permissions/general";
@@ -16,10 +17,12 @@ export default function AdminLayout({
     </>
   );
 }
-
 function Navbar() {
   return (
     <header className="flex h-12 shadow bg-background z-10  py-10 ">
+      {/* <Suspense fallback={<></>}>
+        <SocketClient></SocketClient>
+      </Suspense> */}
       <nav className="flex gap-4  container">
         <div className="mr-auto flex items-center gap-2">
           <Link href={"/"} className="text-lg hover:underline  ">
